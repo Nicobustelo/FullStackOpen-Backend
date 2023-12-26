@@ -1,0 +1,34 @@
+{
+  "persons": [
+    {
+      "name": "Arto Hellas",
+      "number": "040-123456",
+      "id": 1
+    },
+    {
+      "name": "Ada Lovelace",
+      "number": "39-44-5323523",
+      "id": 2
+    },
+    {
+      "name": "Dan Abramov",
+      "number": "12-43-234345",
+      "id": 3
+    },
+    {
+      "name": "Mary Poppendieck",
+      "number": "cnjadlkn",
+      "id": 7
+    },
+    {
+      "name": "Ernesto Bustelo",
+      "number": "2615351059",
+      "id": 8
+    },
+    {
+      "name": "Nicolas Bustelo",
+      "number": "2616575558",
+      "id": 9
+    }
+  ]
+}
