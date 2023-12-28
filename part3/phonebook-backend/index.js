@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const { default: mongoose } = require('mongoose');
 const app = express();
+const axios = require('axios');
 
 app.use(cors());
 app.use(express.static('dist'));
@@ -17,15 +18,8 @@ app.get('/api/persons', (req, res) => {
 	});
 });
 
-app.get('/api/persons/:id', (request, response) => {
-	const id = Number(request.params.id);
-	const person = persons.find(p => p.id === id);
-
-	if (!person) {
-		response.status(404).end();
-	} else {
-		response.json(person);
-	}
+app.get('/api/persons/:id', (req, res) => {
+	Phonebook.findById(req.params.id).then(result => res.json(result));
 });
 
 const getDate = () => {
@@ -34,21 +28,26 @@ const getDate = () => {
 
 app.get('/info', (request, response) => {
 	const date = getDate();
-	response.send(
-		`<p>Phonebook has info for ${persons.length} people</p><p>${date}</p>`
-	);
+	let numberOfPersons = 0;
+	axios
+		.get('http://localhost:3001/api/persons')
+		.then(result => {
+			numberOfPersons = result.data.length;
+			response.send(
+				`<p>Phonebook has info for ${numberOfPersons} people</p><p>${date}</p>`
+			);
+		})
+		.catch(err => {
+			res.status(404).end();
+			console.log(err);
+		});
 });
 
-app.delete('/api/persons/:id', (request, response) => {
-	const id = Number(request.params.id);
-	persons = persons.filter(p => p.id !== id);
-
-	response.status(204).end();
+app.delete('/api/persons/:id', (req, res, next) => {
+	Phonebook.findByIdAndDelete(req.params.id)
+		.then(() => res.status(204).end())
+		.catch(err => next(err));
 });
-
-function generateId(min, max) {
-	return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
 app.post('/api/persons', (req, res) => {
 	const newPerson = new Phonebook(req.body);
@@ -58,26 +57,21 @@ app.post('/api/persons', (req, res) => {
 	res.json(newPerson);
 });
 
-// app.post('/api/persons', (request, response) => {
-// 	const person = request.body;
-// 	const id = generateId(persons.length, 1000);
-// 	console.log('person ', request.body);
-// 	console.log('id ', id);
-// 	person.id = id;
+app.put('/api/persons/:id', (req, res, next) => {
+	const updatedPerson = req.body;
 
-// 	if (!person.name || !person.number) {
-// 		return response.status(400).json({
-// 			error: 'name or number missing',
-// 		});
-// 	} else if (persons.map(p => p.name).includes(person.name)) {
-// 		return response
-// 			.status(400)
-// 			.json({ error: 'Name is already in the phonebook' });
-// 	} else {
-// 		persons = persons.concat(person);
-// 		response.json(person);
-// 	}
-// });
+	Phonebook.findByIdAndUpdate(req.params.id, updatedPerson, { new: true })
+		.then(result => res.json(result))
+		.catch(err => next(err));
+});
+
+const errorHandler = (err, req, res, next) => {
+	console.error(err.message);
+
+	next(err);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server runing on port ${PORT}`));
