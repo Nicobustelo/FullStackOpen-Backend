@@ -49,26 +49,40 @@ app.delete('/api/persons/:id', (req, res, next) => {
 		.catch(err => next(err));
 });
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
 	const newPerson = new Phonebook(req.body);
-	newPerson.save().then(() => {
-		console.log(`added to phonebook`);
-	});
-	res.json(newPerson);
+	newPerson
+		.save()
+		.then(() => {
+			console.log(`added to phonebook`);
+			res.json(newPerson);
+		})
+		.catch(error => next(error));
 });
 
 app.put('/api/persons/:id', (req, res, next) => {
 	const updatedPerson = req.body;
 
-	Phonebook.findByIdAndUpdate(req.params.id, updatedPerson, { new: true })
+	Phonebook.findByIdAndUpdate(req.params.id, updatedPerson, {
+		new: true,
+		runValidators: true,
+		context: 'query',
+	})
 		.then(result => res.json(result))
 		.catch(err => next(err));
 });
 
-const errorHandler = (err, req, res, next) => {
-	console.error(err.message);
+const errorHandler = (error, request, response, next) => {
+	console.error('aca esta', error.message);
 
-	next(err);
+	if (error.name === 'CastError') {
+		return response.status(400).send({ error: 'malformatted id' });
+	} else if (error.name === 'ValidationError') {
+		console.log('llego hasta aca ya');
+		return response.status(400).json({ error: error.message });
+	}
+
+	next(error);
 };
 
 app.use(errorHandler);

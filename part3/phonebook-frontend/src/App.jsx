@@ -130,15 +130,23 @@ const App = () => {
 				name: newName,
 				number: newNumber,
 			};
-			phonebookService.create(nameToAdd).then(response => {
-				setPersons(persons.concat(response));
-				setNewNumber('');
-				setNewName('');
-				setMessage([`Added ${response.name}`, 'green']);
-				setTimeout(() => {
-					setMessage([null, null]);
-				}, 5000);
-			});
+			phonebookService
+				.create(nameToAdd)
+				.then(response => {
+					setPersons(persons.concat(response));
+					setNewNumber('');
+					setNewName('');
+					setMessage([`Added ${response.name}`, 'green']);
+					setTimeout(() => {
+						setMessage([null, null]);
+					}, 5000);
+				})
+				.catch(error => {
+					setMessage([error.error, 'red']);
+					setTimeout(() => {
+						setMessage([null, null]);
+					}, 5000);
+				});
 		}
 	};
 

@@ -15,9 +15,29 @@ mongoose
 		console.log('error connecting to MongoDB:', error.message);
 	});
 
+const phoneNumberValidator = value => {
+	// Regular expression to match the desired format
+	const phoneNumberRegex = /^[0-9]{2,3}-[0-9]+$/;
+
+	// Check if the value matches the regular expression
+	return phoneNumberRegex.test(value);
+};
+
 const personSchema = new mongoose.Schema({
-	name: String,
-	number: Number,
+	name: {
+		type: String,
+		minLength: 3,
+	},
+	number: {
+		type: String,
+		validate: {
+			validator: phoneNumberValidator,
+			message:
+				'Invalid phone number format. Use the format XX-XXXXXXX or XXX-XXXXXXX.',
+		},
+		minLength: 8,
+		required: true,
+	},
 });
 
 personSchema.set('toJSON', {
