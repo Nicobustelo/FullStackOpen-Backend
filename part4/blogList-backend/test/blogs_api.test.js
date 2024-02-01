@@ -89,6 +89,38 @@ test('if title or url properties are missing, backend responds with status code 
 	await api.post('/api/blogs').send(newNote).expect(400);
 });
 
+describe('deletion of a note', () => {
+	test('succeeds with status code 204 if id is valid', async () => {
+		let response = await api.get('/api/blogs');
+
+		console.log('GET blogs: ', response.body);
+
+		const validID = response.body[0].id;
+
+		await api.delete(`/api/blogs/${validID}`).expect(204);
+
+		response = await api.get('/api/blogs');
+
+		expect(response.body).toHaveLength(initialBlogs.length - 1);
+	});
+});
+
+describe('updating individual post', () => {
+	test('adding one to number of likes', async () => {
+		let result = await api.get('/api/blogs');
+		const validId = result.body[0].id;
+		const updatedFirstBlog = {
+			...result.body[0],
+			likes: result.body[0].likes + 1,
+		};
+
+		await api.put(`/api/blogs/${validId}`).send(updatedFirstBlog).expect(200);
+
+		result = await api.get('/api/blogs');
+		expect(result.body[0].likes).toBe(initialBlogs[0].likes + 1);
+	});
+});
+
 afterAll(async () => {
 	await mongoose.connection.close();
 });
